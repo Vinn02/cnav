@@ -1,0 +1,23 @@
+h1 {
+    color: red;
+}
+
+#nama {
+    color: blue;
+}
+
+#merah {
+    color: aqua;
+}
+
+.kuning {
+    color: black    ;
+}
+
+#gambar {
+    background-color: blue;
+}
+
+.img {
+    width: 100px;
+}
