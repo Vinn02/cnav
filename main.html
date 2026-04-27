@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNAV - Main Page</title>
+
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+    <!-- HEADER -->
+<nav class="navbar-main">
+
+    <!-- Logo Kiri -->
+    <div class="logo">
+        <img src="assets/images/logo-cnav.png" alt="CNAV Logo">
+    </div>
+
+    <!-- Tombol Back Kanan -->
+    <a href="index.html" class="back-icon">
+        <img src="assets/images/back-icon.png" alt="Back">
+    </a>
+
+</nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-container">
+
+        <!-- LEFT PANEL -->
+        <section class="left-panel">
+
+            <!-- INPUT BOX -->
+            <div class="box input-box">
+                <h2>Input Bilangan Kompleks</h2>
+
+                <div class="input-group">
+                    <label>Z₁ :</label>
+                    <span>Real</span>
+                    <input type="number" id="real1">
+
+                    <span>+ Imag</span>
+                    <input type="number" id="imag1">
+                    <span>i</span>
+                </div>
+
+                <div class="input-group">
+                    <label>Z₂ :</label>
+                    <span>Real</span>
+                    <input type="number" id="real2">
+
+                    <span>+ Imag</span>
+                    <input type="number" id="imag2">
+                    <span>i</span>
+                </div>
+
+                <div class="operation-row">
+                    <label>Operasi:</label>
+
+                    <select id="operation">
+                        <option value="">Pilih</option>
+                        <option value="add">Penjumlahan</option>
+                        <option value="sub">Pengurangan</option>
+                        <option value="mul">Perkalian</option>
+                        <option value="div">Pembagian</option>
+                    </select>
+
+                    <button id="calculateBtn">Hitung</button>
+                </div>
+            </div>
+
+            <!-- STEP BOX -->
+            <div class="box step-box">
+                <h2>Langkah Penyelesaian</h2>
+                <div id="steps"></div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT PANEL -->
+        <section class="right-panel">
+            <div class="box graph-box">
+                <h2>Visualisasi</h2>
+
+                <div class="graph-area">
+                    <canvas id="complexCanvas"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
