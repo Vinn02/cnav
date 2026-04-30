@@ -120,5 +120,22 @@
                 <p>Copyright © 2026 CNAV. All rights reserved.</p>
             </div>
         </footer>
+         <script>
+            
+            const targets = document.querySelectorAll('.hero, .about, .features');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('muncul');
+                    } else {
+                        
+                        entry.target.classList.remove('muncul');
+                    }
+                });
+            }, { threshold: 0.1 }); 
+
+            targets.forEach(t => observer.observe(t));
+            </script>
     </body>
 </html>
