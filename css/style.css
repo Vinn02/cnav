@@ -339,3 +339,8 @@ section {
     font-size: 14px;
     color: #ddd;
 }
+.hero-logo {
+    width: 200px;
+    display: block;
+    margin: 0 auto;
+}
