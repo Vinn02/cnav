@@ -1,0 +1,43 @@
+.logo img {
+    height: 45px;
+    width: auto;
+    display: block;
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 10px 28px;
+    border: 0.5px solid #7aa6ff;
+    border-radius: 25px;
+    background: rgba(0, 60, 80, 0.2);
+    color: #7aa6ff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    transition: 0.3s;
+    box-shadow:
+        0 0 8px rgba(122, 166, 255, 0.5),
+        0 0 20px rgba(122, 166, 255, 0.3);
+}
+
+.btn:hover {
+    background: rgba(122, 166, 255, 0.12);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow:
+        0 0 12px rgba(122, 166, 255, 0.8),
+        0 0 30px rgba(122, 166, 255, 0.45);
+}
+
+.box {
+    background: rgba(0, 60, 80, 0.2);
+    border: 0.2px solid #001c2b;
+    border-radius: 10px;
+    padding: 15px;
+    overflow: hidden;
+    box-shadow:
+        0 0 12px rgba(122, 166, 255, 0.10),
+        0 0 28px rgba(122, 166, 255, 0.06);
+}
