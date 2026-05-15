@@ -4,226 +4,183 @@ import { appState } from "../core/state.js";
 const canvas = DOM.canvas;
 const ctx = canvas.getContext("2d");
 
+let skala = 40;
+let geserX = 0;
+let geserY = 0;
+let sensorAktif = false;
+
 export function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    canvas.width = canvas.offsetWidth || 800;
+    canvas.height = canvas.offsetHeight || 500;
+    if (geserX === 0) {
+        geserX = canvas.width / 2;
+        geserY = canvas.height / 2;
+    }
+    if (!sensorAktif) {
+        aktifkanInteraksi();
+        sensorAktif = true;
+    }
+}
+
+function aktifkanInteraksi() {
+    canvas.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const mx = (e.offsetX - geserX) / skala;
+        const my = (e.offsetY - geserY) / skala;
+        if (e.deltaY < 0) skala *= 1.1;
+        else skala /= 1.1;
+        geserX = e.offsetX - mx * skala;
+        geserY = e.offsetY - my * skala;
+        renderGraph();
+    }, { passive: false });
+
+    let drag = false;
+    let ax, ay;
+    canvas.addEventListener("mousedown", (e) => {
+        drag = true;
+        canvas.style.cursor = "grabbing";
+        ax = e.clientX - geserX;
+        ay = e.clientY - geserY;
+    });
+    window.addEventListener("mousemove", (e) => {
+        if (!drag) return;
+        geserX = e.clientX - ax;
+        geserY = e.clientY - ay;
+        renderGraph();
+    });
+    window.addEventListener("mouseup", () => {
+        drag = false;
+        canvas.style.cursor = "default";
+    });
+}
+
+function hitungLangkahGrid() {
+    let target = 60 / skala;
+    return Math.pow(10, Math.ceil(Math.log10(target)));
+}
+
+function drawGrid() {
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, w, h);
+
+    const step = hitungLangkahGrid();
+    const subStep = step / 5;
+
+    // 1. Grid Halus (Kotak Kecil - Kontras Tinggi)
+    ctx.strokeStyle = "#dcdcdc"; 
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = Math.floor(-geserX / (skala * subStep)) * subStep; x * skala + geserX < w; x += subStep) {
+        ctx.moveTo(x * skala + geserX, 0); ctx.lineTo(x * skala + geserX, h);
+    }
+    for (let y = Math.floor(-geserY / (skala * subStep)) * subStep; y * skala + geserY < h; y += subStep) {
+        ctx.moveTo(0, y * skala + geserY); ctx.lineTo(w, y * skala + geserY);
+    }
+    ctx.stroke();
+
+    // 2. Grid Utama (Kotak Besar - Sangat Jelas)
+    ctx.strokeStyle = "#999999"; 
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let x = Math.floor(-geserX / (skala * step)) * step; x * skala + geserX < w; x += step) {
+        ctx.moveTo(x * skala + geserX, 0); ctx.lineTo(x * skala + geserX, h);
+    }
+    for (let y = Math.floor(-geserY / (skala * step)) * step; y * skala + geserY < h; y += step) {
+        ctx.moveTo(0, y * skala + geserY); ctx.lineTo(w, y * skala + geserY);
+    }
+    ctx.stroke();
+
+    // 3. Label Angka (Hitam Pekat)
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 12px Arial";
+    ctx.textAlign = "center";
+    for (let x = Math.floor(-geserX / (skala * step)) * step; x * skala + geserX < w; x += step) {
+        if (Math.abs(x) > 1e-10) ctx.fillText(parseFloat(x.toPrecision(12)), x * skala + geserX, geserY + 22);
+    }
+    ctx.textAlign = "left";
+    for (let y = Math.floor(-geserY / (skala * step)) * step; y * skala + geserY < h; y += step) {
+        if (Math.abs(y) > 1e-10) ctx.fillText(parseFloat((-y).toPrecision(12)), geserX + 15, y * skala + geserY);
+    }
+
+    // 4. Sumbu Utama (Hitam Tebal Maksimal)
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(0, geserY); ctx.lineTo(w, geserY);
+    ctx.moveTo(geserX, 0); ctx.lineTo(geserX, h);
+    ctx.stroke();
+
+    // 5. Label Axis (Posisinya Tetap)
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 18px Arial";
+    ctx.textAlign = "right";
+    ctx.fillText("Real Axis", w - 25, geserY - 15);
+    ctx.textAlign = "left";
+    ctx.fillText("Imaginary Axis", geserX + 25, 40);
 }
 
 function drawDashedLine(x1, y1, x2, y2, color) {
     ctx.beginPath();
     ctx.setLineDash([6, 4]);
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;
     ctx.stroke();
     ctx.setLineDash([]);
 }
 
-function drawParallelogram(real1, imag1, real2, imag2) {
-    const centerX = canvas.width / 2 + appState.offsetX;
-    const centerY = canvas.height / 2 + appState.offsetY;
-
-    const x1 = centerX + (real1 * appState.scale);
-    const y1 = centerY - (imag1 * appState.scale);
-
-    const x2 = centerX + (real2 * appState.scale);
-    const y2 = centerY - (imag2 * appState.scale);
-
-    const xr = centerX + ((real1 + real2) * appState.scale);
-    const yr = centerY - ((imag1 + imag2) * appState.scale);
-
-    drawDashedLine(x1, y1, xr, yr, "#999");
-    drawDashedLine(x2, y2, xr, yr, "#999");
+function drawParallelogram(r1, i1, r2, i2) {
+    const x1 = geserX + (r1 * skala);
+    const y1 = geserY - (i1 * skala);
+    const x2 = geserX + (r2 * skala);
+    const y2 = geserY - (i2 * skala);
+    const xr = geserX + ((r1 + r2) * skala);
+    const yr = geserY - ((i1 + i2) * skala);
+    drawDashedLine(x1, y1, xr, yr, "#666");
+    drawDashedLine(x2, y2, xr, yr, "#666");
 }
 
-function drawGrid() {
-    const width = canvas.width;
-    const height = canvas.height;
-
-    const centerX = width / 2 + appState.offsetX;
-    const centerY = height / 2 + appState.offsetY;
-
-    let step = appState.scale;
-
-    let unitValue = 1;
-
-    if (step < 10) {
-        unitValue = Math.round(10 / step);
-        step = 10;
-    }
-
-    let labelStep = 1;
-
-    if (appState.scale <= 30) {
-        labelStep = 2;
-    }
-
-    if (appState.scale <= 15) {
-        labelStep = 5;
-    }
-
-    if (appState.scale <= 8) {
-        labelStep = 10;
-    }
-
-    ctx.clearRect(0, 0, width, height);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.strokeStyle = appState.scale <= 10 ? "#f1f1f1" : "#e8e8e8";
-    ctx.lineWidth = 0.8;
-
-    const startX = centerX % step;
-
-    const worldStartX = -Math.floor(centerX / step) * unitValue;
-    for (let x = startX; x < width; x += step) {
-        const worldValue = worldStartX + Math.round((x- startX) / step) * unitValue;
-        const isMajor = worldValue % 5 === 0;
-        ctx.beginPath();
-        ctx.strokeStyle = isMajor ? "#c0c0c0" : "#e7e7e7";
-        ctx.lineWidth = isMajor ? 1.2 : 0.8;
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-    }
-
-    const startY = centerY % step;
-
-    const worldStartY = Math.floor(centerY / step) * unitValue;
-    for (let y = startY; y < height; y += step) {
-        const worldValue = worldStartY - Math.round((y - startY) / step) * unitValue;
-        const isMajor = worldValue % 5 === 0;
-        ctx.beginPath();
-        ctx.strokeStyle = isMajor ? "#c0c0c0" : "#e7e7e7";
-        ctx.lineWidth = isMajor ? 1.2 : 0.8;
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-    }
-
-    ctx.fillStyle = "#666";
-    ctx.font = appState.scale <= 10 ? "10px Poppins" : "12px Poppins";
-
-    for (let x = startX; x < width; x += step) {
-        let value = worldStartX + Math.round((x - startX) / step) * unitValue;
-
-        if (value !== 0 && value % labelStep === 0) {
-            ctx.textAlign = "center";
-            ctx.textBaseline = "top";
-            ctx.fillText(value, x, centerY + 8);
-        }
-    }
-
-    for (let x = startX; x > 0; x -= step) {
-        let value = worldStartX + Math.round((x - startX) / step) * unitValue;
-
-        if (value !== 0 && value % labelStep === 0) {
-            ctx.textAlign = "center";
-            ctx.textBaseline = "top";
-            ctx.fillText(value, x, centerY + 8);
-        }
-    }
-
-    for (let y = startY; y < height; y += step) {
-        let value = worldStartY - Math.round((y - startY) / step) * unitValue;
-
-        if (value !== 0 && value % labelStep === 0) {
-            ctx.textAlign = "left";
-            ctx.textBaseline = "middle";
-            ctx.fillText(value, centerX + 8, y);
-        }
-    }
-
-    for (let y = startY; y > 0; y -= step) {
-        let value = worldStartY + Math.round((startY - y) / step) * unitValue;
-
-        if (value !== 0 && value % labelStep === 0) {
-            ctx.textAlign = "left";
-            ctx.textBaseline = "middle";
-            ctx.fillText(value, centerX + 8, y);
-        }
-    }
-
-    ctx.strokeStyle = "#222";
-    ctx.lineWidth = 2.2;
-    ctx.fillStyle = "#222";
-    ctx.font = "600 15px Poppins";
-
-    ctx.textAlign = "right";
-    ctx.fillText("Real Axis", width - 25, centerY - 12);
-
-    ctx.textAlign = "left";
-    ctx.fillText("Imaginary Axis", centerX + 12, 24);
-
+function drawVector(real, imag, warna, label) {
+    const tx = geserX + (real * skala);
+    const ty = geserY - (imag * skala);
+    drawDashedLine(tx, ty, tx, geserY, "#aaa");
+    drawDashedLine(tx, ty, geserX, ty, "#aaa");
+    
+    ctx.strokeStyle = warna;
+    ctx.lineWidth = 3.5;
     ctx.beginPath();
-    ctx.moveTo(0, centerY);
-    ctx.lineTo(width, centerY);
+    ctx.moveTo(geserX, geserY); ctx.lineTo(tx, ty);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(centerX, 0);
-    ctx.lineTo(centerX, height);
-    ctx.stroke();
-}
-
-function drawPoint(real, imag, color, label) {
-    const centerX = canvas.width / 2 + appState.offsetX;
-    const centerY = canvas.height / 2 + appState.offsetY;
-
-    const x = centerX + (real * appState.scale);
-    const y = centerY - (imag * appState.scale);
-
-    ctx.beginPath();
-    ctx.arc(x, y, 6, 0, Math.PI * 2);
-
-    ctx.fillStyle = color;
+    ctx.arc(tx, ty, 8, 0, Math.PI * 2);
+    ctx.fillStyle = warna;
     ctx.fill();
 
-    ctx.font = "14px Poppins";
-    ctx.fillStyle = color;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(label, x + 12, y - 14);
+    ctx.font = "bold 16px Arial";
+    ctx.fillText(label, tx + 15, ty - 15);
 }
 
-function drawVector(real, imag, color) {
-    const centerX = canvas.width / 2 + appState.offsetX;
-    const centerY = canvas.height / 2 + appState.offsetY;
-
-    const x = centerX + (real * appState.scale);
-    const y = centerY - (imag * appState.scale);
-
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(x, y);
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-}
+export function zoomIn() { skala *= 1.2; renderGraph(); }
+export function zoomOut() { skala /= 1.2; renderGraph(); }
 
 export function renderGraph() {
     drawGrid();
-
-    if (appState.savedOperation === "add") {
-        drawParallelogram(
-            appState.savedReal1,
-            appState.savedImag1,
-            appState.savedReal2,
-            appState.savedImag2
-        );
-    }
-
-    drawVector(appState.savedReal1, appState.savedImag1, "blue");
-    drawVector(appState.savedReal2, appState.savedImag2, "green");
-
-    drawPoint(appState.savedReal1, appState.savedImag1, "blue", "Z₁");
-    drawPoint(appState.savedReal2, appState.savedImag2, "green", "Z₂");
-
-    if (appState.savedOperation !== "") {
-        drawVector(appState.savedResultReal, appState.savedResultImag, "red");
-        drawPoint(appState.savedResultReal, appState.savedResultImag, "red", "Hasil");
+    if (!appState.savedOperation || appState.savedOperation === "") {
+        drawVector(0, 0, "#008000", "Z");
+    } else {
+        // Fitur Jajar Genjang Penjumlahan
+        if (appState.savedOperation === "add") {
+            drawParallelogram(
+                appState.savedReal1, appState.savedImag1,
+                appState.savedReal2, appState.savedImag2
+            );
+        }
+        drawVector(appState.savedReal1, appState.savedImag1, "blue", "Z₁");
+        drawVector(appState.savedReal2, appState.savedImag2, "green", "Z₂");
+        drawVector(appState.savedResultReal, appState.savedResultImag, "red", "Hasil");
     }
 }
