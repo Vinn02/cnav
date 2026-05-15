@@ -1,63 +1,15 @@
 function initControls() {
+    // Tombol +
     document.getElementById("zoomIn").addEventListener("click", function () {
-        if (scale < maxScale) {
-            scale += zoomStep;
-            renderGraph();
-        }
+        ArgandChart.zoomIn();
     });
 
+    // Tombol -
     document.getElementById("zoomOut").addEventListener("click", function () {
-        if (scale > minScale) {
-            scale -= zoomStep;
-            renderGraph();
-        }
+        ArgandChart.zoomOut();
     });
 
-    canvas.addEventListener("wheel", function (e) {
-        e.preventDefault();
-
-        if (e.deltaY < 0) {
-            if (scale < maxScale) {
-                scale += zoomStep;
-            }
-        } else {
-            if (scale > minScale) {
-                scale -= zoomStep;
-            }
-        }
-
-        renderGraph();
-    });
-
-    canvas.addEventListener("mousedown", function (e) {
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-    });
-
-    canvas.addEventListener("mousemove", function (e) {
-        if (!isDragging) return;
-
-        let dx = e.clientX - startX;
-        let dy = e.clientY - startY;
-
-        offsetX += dx;
-        offsetY += dy;
-
-        startX = e.clientX;
-        startY = e.clientY;
-
-        renderGraph();
-    });
-
-    canvas.addEventListener("mouseup", function () {
-        isDragging = false;
-    });
-
-    canvas.addEventListener("mouseleave", function () {
-        isDragging = false;
-    });
-
+    // Tombol Reset
     document.getElementById("resetBtn").addEventListener("click", function () {
         document.getElementById("real1").value = "";
         document.getElementById("imag1").value = "";
@@ -66,25 +18,21 @@ function initControls() {
         document.getElementById("operation").value = "";
         document.getElementById("steps").innerHTML = "";
 
-        savedReal1 = 0;
-        savedImag1 = 0;
-        savedReal2 = 0;
-        savedImag2 = 0;
-        savedResultReal = 0;
-        savedResultImag = 0;
-        savedOperation = "";
-
-        scale = 40;
-        offsetX = 0;
-        offsetY = 0;
-
-        renderGraph();
+        // Hapus titik di grafik
+        ArgandChart.updatePoints([]);
     });
 
+    // Tombol Download
     document.getElementById("saveGraphBtn").addEventListener("click", function () {
+        const canvasElement = document.getElementById("complexCanvas");
         const link = document.createElement("a");
         link.download = "complex-graph.png";
-        link.href = canvas.toDataURL("image/png");
+        link.href = canvasElement.toDataURL("image/png");
         link.click();
     });
 }
+
+// Langsung aktifkan tombol pas web dibuka
+document.addEventListener("DOMContentLoaded", function() {
+    initControls();
+});
