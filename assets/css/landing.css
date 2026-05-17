@@ -48,7 +48,7 @@ section {
 }
 
 .nav-links a.active {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(131, 236, 255, 0.377);
     color: #ffffff;
 
     box-shadow:
@@ -157,6 +157,9 @@ section {
     height: 4px;
     background: #7aa6ff;
     border-radius: 10px;
+    box-shadow:
+        0 0 10px rgba(122, 166, 255, 0.35),
+        0 0 25px rgba(122, 166, 255, 0.12);
 }
 
 .about-image {
@@ -415,16 +418,18 @@ section {
 .portfolio-info h3 {
     color: #ffffff;
 
+    font-family: 'Story Script', sans-serif;
     font-size: 22px;
     font-weight: 300;
-
+    
     margin-left: 20px;
     margin-bottom: -2px;
-
+    
     line-height: 1.1;
 }
 
 .portfolio-info p {
+    font-family: 'Crimson Text', serif;
     color: #ffffff;
 
     font-size: 18px;
